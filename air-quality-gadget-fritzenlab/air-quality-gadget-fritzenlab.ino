@@ -16,10 +16,43 @@ Adafruit_NeoPixel pixel(NUMPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t tvoc = 0;
 unsigned long mainTimer = 0;
+uint32_t smoothtvoc = 0;
+
+class MovingAverage {
+  private:
+    int _numReadings;
+    uint32_t *_readings;     
+    int _readIndex = 0;
+    uint32_t _total = 0;   
+
+  public:
+    MovingAverage(int size) {
+      _numReadings = size;
+      _readings = new uint32_t[_numReadings];
+      for (int i = 0; i < _numReadings; i++) _readings[i] = 0.0;
+    }
+
+    ~MovingAverage() {  // free memory
+      delete[] _readings;
+    }
+
+    uint32_t update(uint32_t newValue) {
+      _total -= _readings[_readIndex];
+      _readings[_readIndex] = newValue;
+      _total += newValue;
+
+      _readIndex++;
+      if (_readIndex >= _numReadings) _readIndex = 0;
+
+      return _total / _numReadings; 
+    }
+};
+
+MovingAverage tvocSensorAvg(5);
 
 uint32_t readAGS10()
 {
-  uint8_t data[5];
+  uint8_t data[5] = {0};
 
   // Select register 0x00
   TinyWireM.beginTransmission(AGS10_ADDR);
@@ -97,7 +130,8 @@ void loop()
     mainTimer += 5000;
 
     tvoc = readAGS10();
-    showTVOC(tvoc);
+    smoothtvoc = tvocSensorAvg.update(tvoc);
+    showTVOC(smoothtvoc);
   }
   
 
