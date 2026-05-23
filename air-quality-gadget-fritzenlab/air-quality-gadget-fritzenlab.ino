@@ -166,9 +166,9 @@ void loop()
     
   }
   // effectively execute the blinking, if and when necessary
-  if(blink == 1){ 
+  if(blinkLED == 1){ 
     blink_LED(1);
-  }else if(blink == 2){
+  }else if(blinkLED == 2){
     blink_LED(2);
   }else{
 
