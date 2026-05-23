@@ -16,7 +16,10 @@ Adafruit_NeoPixel pixel(NUMPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t tvoc = 0;
 unsigned long mainTimer = 0;
+unsigned long blinkTimer = 0;
 uint32_t smoothtvoc = 0;
+int blink = 0;
+int blinkLED = 0;
 
 class MovingAverage {
   private:
@@ -116,6 +119,25 @@ void showTVOC(uint32_t tvoc)
   else if(tvoc < 4500)   setColor(120, 0, 0);
   else                   setColor(80, 0, 20);
 }
+void blink_LED(int color){
+  if(millis() - blinkTimer > 300){
+    blinkTimer += 300;
+
+    if(blink == 0){
+      blink= 1;
+      if(color == 1){
+        setColor(0, 0, 254);
+      }else{
+        setColor(254, 0, 0);
+      }
+    }else{
+      blink= 0;
+      setColor(0, 0, 0);
+    }
+
+  }
+    
+}
 void setup()
 {
   TinyWireM.begin();
@@ -129,11 +151,27 @@ void loop()
   if(millis() - mainTimer > 5000){
     mainTimer += 5000;
 
-    tvoc = readAGS10();
-    smoothtvoc = tvocSensorAvg.update(tvoc);
-    showTVOC(smoothtvoc);
-  }
-  
+    tvoc = readAGS10(); // make an AGS10 reading
 
+    if(tvoc < 1){ // maybe we lost connection to the sensor
+      blinkLED= 1; // blinks in blue
+    }else if(tvoc > 5500){ // very likely a bad situation
+      blinkLED= 2; // blinks in red
+
+    }else{ // this is the normal, just light the Neopixel with the corresponding color
+      blinkLED= 0;
+      smoothtvoc = tvocSensorAvg.update(tvoc);
+      showTVOC(smoothtvoc);
+    }
+    
+  }
+  // effectively execute the blinking, if and when necessary
+  if(blink == 1){ 
+    blink_LED(1);
+  }else if(blink == 2){
+    blink_LED(2);
+  }else{
+
+  }
   
 }
