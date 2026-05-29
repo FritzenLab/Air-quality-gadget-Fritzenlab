@@ -51,7 +51,7 @@ class MovingAverage {
     }
 };
 
-MovingAverage tvocSensorAvg(5);
+MovingAverage tvocSensorAvg(25);
 
 uint32_t readAGS10()
 {
@@ -91,33 +91,41 @@ void setColor(uint8_t r, uint8_t g, uint8_t b)
 
 void showTVOC(uint32_t tvoc)
 {
-  // ===== GREEN =====
-  if(tvoc < 65)          setColor(0, 20, 0);
-  else if(tvoc < 130)    setColor(0, 40, 0);
-  else if(tvoc < 195)    setColor(0, 60, 0);
-  else if(tvoc < 260)    setColor(20, 80, 0);
-  else if(tvoc < 325)    setColor(40, 100, 0);
+  /*
+    Log-like perception mapping:
+    
+    GREEN   :   0 - 500
+    YELLOW  : 500 - 1200
+    ORANGE  : 1200 - 2500
+    RED     : >2500
 
-  // ===== YELLOW =====
-  else if(tvoc < 450)    setColor(80, 100, 0);
-  else if(tvoc < 575)    setColor(120, 120, 0);
-  else if(tvoc < 700)    setColor(150, 130, 0);
-  else if(tvoc < 825)    setColor(180, 140, 0);
-  else if(tvoc < 950)    setColor(220, 160, 0);
+    The steps are intentionally compressed at higher values
+    so the display behaves more naturally to human perception.
+  */
 
-  // ===== ORANGE =====
-  else if(tvoc < 1150)   setColor(255, 120, 0);
-  else if(tvoc < 1350)   setColor(255, 100, 0);
-  else if(tvoc < 1550)   setColor(255, 80, 0);
-  else if(tvoc < 1750)   setColor(255, 60, 0);
-  else if(tvoc < 1950)   setColor(255, 40, 0);
+  // ===== DEEP GREEN TO LIME =====
+  if(tvoc < 80)           setColor(0, 18, 0);
+  else if(tvoc < 160)     setColor(0, 35, 0);
+  else if(tvoc < 260)     setColor(0, 55, 0);
+  else if(tvoc < 380)     setColor(15, 75, 0);
+  else if(tvoc < 500)     setColor(40, 100, 0);
 
-  // ===== RED =====
-  else if(tvoc < 2300)   setColor(255, 0, 0);
-  else if(tvoc < 2800)   setColor(220, 0, 0);
-  else if(tvoc < 3500)   setColor(180, 0, 0);
-  else if(tvoc < 4500)   setColor(120, 0, 0);
-  else                   setColor(80, 0, 20);
+  // ===== YELLOW ZONE =====
+  else if(tvoc < 700)     setColor(90, 110, 0);
+  else if(tvoc < 900)     setColor(140, 125, 0);
+  else if(tvoc < 1050)    setColor(190, 140, 0);
+  else if(tvoc < 1200)    setColor(240, 170, 0);
+
+  // ===== ORANGE ZONE =====
+  else if(tvoc < 1500)    setColor(255, 130, 0);
+  else if(tvoc < 1800)    setColor(255, 100, 0);
+  else if(tvoc < 2100)    setColor(255, 75, 0);
+  else if(tvoc < 2500)    setColor(255, 45, 0);
+
+  // ===== RED ZONE =====
+  else if(tvoc < 3000)    setColor(255, 0, 0);
+  else if(tvoc < 4000)    setColor(180, 0, 0);
+  else                    setColor(120, 0, 10);
 }
 void blink_LED(int color){
   if(millis() - blinkTimer > 300){
